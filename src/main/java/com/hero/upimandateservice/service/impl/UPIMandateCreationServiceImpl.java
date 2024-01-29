@@ -9,9 +9,12 @@ import com.hero.upimandateservice.exception.ClientException;
 import com.hero.upimandateservice.exception.ServerException;
 import com.hero.upimandateservice.exception.UPIMandateResponseException;
 import com.hero.upimandateservice.model.UPIMandateRequest;
+import com.hero.upimandateservice.model.UPIMandateResponse;
 import com.hero.upimandateservice.model.VPAVerifyResponse;
 import com.hero.upimandateservice.model.VerifyVPARequest;
 import com.hero.upimandateservice.service.UPIMandateService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -20,6 +23,8 @@ import java.time.format.DateTimeFormatter;
 
 @Service
 public class UPIMandateCreationServiceImpl implements UPIMandateService {
+
+    Logger logger = LoggerFactory.getLogger(UPIMandateCreationServiceImpl.class);
 
     private static final String VPA_MISMATCH_MESSAGE = "VPAVerId is mismatch";
 
@@ -57,9 +62,7 @@ public class UPIMandateCreationServiceImpl implements UPIMandateService {
     @Override
 //    @CircuitBreaker(name = "apiClientCircuitBreaker",fallbackMethod = "upiFallback")
     public String createMandate(UPIMandateRequest upiMandateRequest) {
-        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy/MM/dd");
-
-
+        logger.info("startTime", +System.currentTimeMillis());
         try {
             VerifyVPARequest verifyVPARequest = VerifyVPARequest.
                     builder().
@@ -87,23 +90,27 @@ public class UPIMandateCreationServiceImpl implements UPIMandateService {
                     upiMandateRequest.setReqAmt(encryptedReqAmt);
                     upiMandateRequest.setReqAccNo(encryptedReqAccNo);
                     upiMandateRequest.setVPAVerId(vpaVerifyResponse.getVPAVerId());
+
                     String upiMandate = upiMandateClient.createUpiMandate(upiMandateRequest);
-                    return upiMandate;
+                    logger.info("endTime", +System.currentTimeMillis());
+                    logger.info("UPI Mandate create successfully");
+                    return  upiMandate;
                 }catch (ClientException ex){
+                    logger.error("UPI Mandate Client Error :: "+ex.getMessage());
                     throw new ClientException(BAD_REQUEST,ex.getMessage());
                 }
-
-
-
-
         }
 
         catch (UPIMandateResponseException ex) {
-            throw new UPIMandateResponseException(VPA_MISMATCH_MESSAGE);
+            logger.error("UPIMandateResponseException ::UPIMandateCreationServiceImpl :: Error " +ex.getMessage());
+            logger.error(ex.getMessage(),BAD_REQUEST);
+            throw new UPIMandateResponseException(ex.getMessage());
 
         }
         catch (Exception ex) {
-            throw new ServerException(BAD_REQUEST,ex.getMessage());
+            logger.error("Exception ::UPIMandateCreationServiceImpl :: Error " +ex.getMessage());
+            logger.error(ex.getMessage(),INTERNAL_SERVER_ERROR);
+            throw new ServerException(INTERNAL_SERVER_ERROR,ex.getMessage());
         }
 
     }

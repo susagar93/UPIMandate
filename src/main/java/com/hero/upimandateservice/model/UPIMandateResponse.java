@@ -12,23 +12,23 @@ import lombok.Setter;
 @NoArgsConstructor
 public class UPIMandateResponse {
     @JsonProperty("Message")
-    private String message;
+    public String message;
     @JsonProperty("ResCode")
-    private String resCode;
+    public String resCode;
     @JsonProperty("MdtID")
-    private String mdtID;
+    public String mdtID;
     @JsonProperty("ReqRefNum")
-    private String reqRefNum;
+    public String reqRefNum;
     @JsonProperty("TxnID")
-    private String txnID;
+    public String txnID;
     @JsonProperty("VPAVerId")
-    private String vPAVerId;
+    public String vPAVerId;
     @JsonProperty("ReqCustName")
-    private String reqCustName;
+    public String reqCustName;
     @JsonProperty("ResCustName")
-    private String resCustName;
+    public String resCustName;
     @JsonProperty("PerMatch")
-    private String perMatch;
+    public String perMatch;
     @JsonProperty("ResRejectReason")
-    private String resRejectReason;
+    public String resRejectReason;
 }

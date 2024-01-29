@@ -4,16 +4,20 @@ package com.hero.upimandateservice.service.impl;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.hero.upimandateservice.client.TokenClient;
 import com.hero.upimandateservice.exception.ClientException;
+import com.hero.upimandateservice.model.APILogger;
 import com.hero.upimandateservice.model.TokenRequest;
 import com.hero.upimandateservice.model.TokenResponse;
 import feign.FeignException;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.stereotype.Service;
 
 @Service
 public class TokenService  {
+    Logger logger = LoggerFactory.getLogger(TokenService.class);
 
     @Value("${mandate.appID}")
     @JsonProperty("AppID")
@@ -38,6 +42,7 @@ public class TokenService  {
 
     public synchronized String getToken(){
         if (accessToken==null || System.currentTimeMillis()>expiryTime){
+
             refreshToken();
         }
         return accessToken;
@@ -45,6 +50,8 @@ public class TokenService  {
 
 //    @CircuitBreaker(name = "apiClientCircuitBreaker",fallbackMethod = "fallbackToken")
     private void refreshToken() {
+
+        logger.info("startTime", String.valueOf(System.currentTimeMillis()));
         TokenRequest tokenRequest = new TokenRequest();
         tokenRequest.setAppId(appId);
         tokenRequest.setMerchantKey(merchantKey);
@@ -55,6 +62,7 @@ public class TokenService  {
 
         }
         catch (Exception e){
+            logger.error("Token generator error :: " +e.getMessage());
             throw new ClientException(500,e.getMessage());
         }
 
